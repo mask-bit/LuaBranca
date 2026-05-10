@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --background: #05070b;
+  --foreground: #ecf7ff;
+  --panel: #0c1721;
+  --panel-soft: #101d28;
+  --silver: #aab7c4;
+  --accent: #9ee7ff;
+  --alert: #ff6b78;
+  --lua-reader-font-size: 14px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(158, 231, 255, 0.28);
+  color: white;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+option {
+  background: #07101a;
+  color: #ecf7ff;
+}
+
+.technical-grid {
+  background-image:
+    linear-gradient(rgba(158, 231, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(158, 231, 255, 0.08) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+.reader-content {
+  font-size: var(--lua-reader-font-size);
+  line-height: 1.9;
+}
+
+:root[data-lua-reader-focus="true"] .reader-sidebar,
+:root[data-lua-reader-focus="true"] .reader-cover {
+  display: none;
+}
+
+:root[data-lua-reader-focus="true"] .reader-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
