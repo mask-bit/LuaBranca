@@ -53,6 +53,8 @@ option {
   line-height: 1.9;
 }
 
+:root[data-lua-reader-focus="true"] .reader-chrome,
+:root[data-lua-reader-focus="true"] .reader-local-strip,
 :root[data-lua-reader-focus="true"] .reader-sidebar,
 :root[data-lua-reader-focus="true"] .reader-cover {
   display: none;
@@ -60,4 +62,99 @@ option {
 
 :root[data-lua-reader-focus="true"] .reader-layout {
   grid-template-columns: minmax(0, 1fr);
+}
+
+:root[data-lua-reader-focus="true"] .reader-tabs-shell {
+  max-width: 860px;
+  margin-inline: auto;
+}
+
+@keyframes lua-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lua-tab-in {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes lua-soft-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(158, 231, 255, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 22px rgba(158, 231, 255, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lua-reveal {
+    animation: lua-rise 260ms ease-out both;
+  }
+
+  .lua-tab-panel {
+    animation: lua-tab-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .lua-tab-indicator {
+    transition:
+      transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 180ms ease,
+      opacity 180ms ease;
+  }
+
+  .lua-pressable {
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .lua-pressable:hover {
+    transform: translateY(-1px);
+  }
+
+  .lua-pressable:active {
+    transform: translateY(0) scale(0.99);
+  }
+
+  .reader-content > * {
+    animation: lua-rise 260ms ease-out both;
+  }
+
+  .reader-tabs-shell [aria-selected="true"] {
+    text-shadow: 0 0 16px rgba(158, 231, 255, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lua-reveal,
+  .lua-pressable,
+  .lua-tab-panel,
+  .lua-tab-indicator,
+  .reader-content > * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

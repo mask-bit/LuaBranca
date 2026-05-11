@@ -5,8 +5,9 @@ import { EmptyState } from "@/components/empty-state";
 import { FilterSummary } from "@/components/filter-summary";
 import { ModuleHero } from "@/components/module-hero";
 import { RecordCard } from "@/components/record-card";
+import { LocalReadingStrip } from "@/components/reader-controls";
 import { SearchPanel } from "@/components/search-panel";
-import { fetchRecords, fetchTags } from "@/lib/data";
+import { fetchRecords, fetchTags, type RecordItem, type TagItem } from "@/lib/data";
 import { parseRecordFilters } from "@/lib/filter-params";
 import { getKindFromRoute, moduleConfigs } from "@/lib/modules";
 
@@ -44,8 +45,10 @@ export default async function ModulePage({ params, searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <ModuleHero kind={kind} />
+      <LocalReadingStrip />
       <SearchPanel action={`/${module}`} defaultValues={values} tags={tags} />
       <FilterSummary params={values} basePath={`/${module}`} total={records.length} />
+      <MobileModuleExtras module={module} tags={tags} recent={recent} />
 
       <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
@@ -63,7 +66,7 @@ export default async function ModulePage({ params, searchParams }: PageProps) {
           )}
         </div>
 
-        <aside className="space-y-3">
+        <aside className="hidden space-y-3 lg:block">
           <Panel title="Tags usadas">
             <div className="flex flex-wrap gap-2">
               {tags.filter((tag) => tag.record_count > 0).slice(0, 16).map((tag) => (
@@ -97,6 +100,58 @@ export default async function ModulePage({ params, searchParams }: PageProps) {
           </Panel>
         </aside>
       </section>
+    </div>
+  );
+}
+
+function MobileModuleExtras({
+  module,
+  tags,
+  recent,
+}: {
+  module: string;
+  tags: TagItem[];
+  recent: RecordItem[];
+}) {
+  return (
+    <div className="grid gap-2 lg:hidden">
+      <details className="rounded-md border border-white/10 bg-[#0d1822]/76 px-3 py-2">
+        <summary className="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100">
+          Tags usadas
+        </summary>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {tags.filter((tag) => tag.record_count > 0).slice(0, 12).map((tag) => (
+            <Link
+              key={tag.id}
+              href={`/${module}?tag=${tag.slug}`}
+              className="rounded border border-cyan-200/25 bg-cyan-200/10 px-2 py-1 text-xs text-cyan-100 hover:bg-cyan-200/15"
+            >
+              {tag.name} ({tag.record_count})
+            </Link>
+          ))}
+          {tags.length === 0 && <p className="text-sm text-zinc-400">Nenhuma tag publicada.</p>}
+        </div>
+      </details>
+      <details className="rounded-md border border-white/10 bg-[#0d1822]/76 px-3 py-2">
+        <summary className="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100">
+          Recentes
+        </summary>
+        <div className="mt-3 space-y-3">
+          {recent.length > 0 ? (
+            recent.map((record) => (
+              <Link
+                key={record.id}
+                href={`/${module}/${record.slug}`}
+                className="block border-t border-white/10 pt-3 text-sm text-zinc-300 first:border-t-0 first:pt-0 hover:text-white"
+              >
+                {record.title}
+              </Link>
+            ))
+          ) : (
+            <p className="text-sm text-zinc-400">Sem registros publicados.</p>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

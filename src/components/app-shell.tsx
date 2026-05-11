@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
           <Link
-            href="/buscar"
+            href="/buscar?level=basic"
             className="grid h-10 w-10 place-items-center rounded-md border border-white/10 bg-white/5 text-cyan-100"
             aria-label="Buscar"
           >

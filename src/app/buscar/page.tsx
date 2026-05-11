@@ -1,6 +1,8 @@
 import { EmptyState } from "@/components/empty-state";
 import { FilterSummary } from "@/components/filter-summary";
+import { LocalReadingStrip } from "@/components/reader-controls";
 import { RecordCard } from "@/components/record-card";
+import { SearchIntents } from "@/components/search-intents";
 import { SearchPanel } from "@/components/search-panel";
 import { fetchRecords, fetchTags } from "@/lib/data";
 import { parseRecordFilters } from "@/lib/filter-params";
@@ -20,14 +22,16 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <header className="rounded-md border border-white/10 bg-[#0b1620]/90 p-6 sm:p-8">
+      <header className="rounded-md border border-white/10 bg-[#0b1620]/90 p-4 sm:p-8">
         <p className="text-xs uppercase tracking-[0.2em] text-cyan-100/60">Sistema de consulta</p>
-        <h1 className="mt-3 text-3xl font-semibold text-white">Busca global</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-300">
+        <h1 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">Busca global</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-300 sm:mt-3 sm:leading-7">
           Pesquise por nome, palavra-chave, tecnica, simbolo, faccao, tese, conhecimento, risco ou origem.
         </p>
       </header>
 
+      <LocalReadingStrip />
+      <SearchIntents />
       <SearchPanel defaultValues={values} tags={tags} />
       <FilterSummary params={values} basePath="/buscar" total={records.length} />
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Bookmark, History, Minus, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type LocalRecord = {
   id: string;
@@ -171,9 +172,60 @@ export function LocalReadingPanel() {
   );
 }
 
+export function LocalReadingStrip({ className }: { className?: string }) {
+  const [saved, setSaved] = useState<LocalRecord[]>([]);
+  const [recent, setRecent] = useState<LocalRecord[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setSaved(readList(savedKey));
+      setRecent(readList(recentKey));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const items = useMemo(() => {
+    const merged = [
+      ...saved.map((item) => ({ ...item, kind: "Salvo" })),
+      ...recent.map((item) => ({ ...item, kind: "Continuar" })),
+    ];
+    return merged.filter((item, index, list) => list.findIndex((candidate) => candidate.id === item.id) === index).slice(0, 6);
+  }, [saved, recent]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <section className={cn("reader-local-strip rounded-md border border-white/10 bg-[#0d1822]/72 p-3", className)}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+          <History className="h-4 w-4 text-cyan-100" aria-hidden />
+          Leitura local
+        </h2>
+        <span className="font-mono text-xs text-cyan-100/65">{items.length}</span>
+      </div>
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5">
+        {items.map((item) => (
+          <Link
+            key={item.id}
+            href={item.href}
+            className="lua-pressable min-w-48 shrink-0 rounded border border-white/10 bg-black/20 p-3 transition hover:border-cyan-200/25 hover:bg-white/[0.04]"
+          >
+            <span className="text-[10px] uppercase tracking-[0.16em] text-cyan-100/60">{item.kind}</span>
+            <p className="mt-1 line-clamp-1 text-sm font-medium text-zinc-100">{item.title}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const buttonClass =
-  "inline-flex h-9 items-center gap-2 rounded border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-200 hover:bg-white/[0.07]";
+  "lua-pressable inline-flex h-9 items-center gap-2 rounded border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-200 transition hover:bg-white/[0.07]";
 const activeButtonClass =
-  "inline-flex h-9 items-center gap-2 rounded border border-cyan-200/35 bg-cyan-200/12 px-3 text-sm text-cyan-50 hover:bg-cyan-200/18";
+  "lua-pressable inline-flex h-9 items-center gap-2 rounded border border-cyan-200/35 bg-cyan-200/15 px-3 text-sm text-cyan-50 transition hover:bg-cyan-200/20";
 const iconButtonClass =
-  "grid h-9 w-9 place-items-center rounded border border-white/10 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.07]";
+  "lua-pressable grid h-9 w-9 place-items-center rounded border border-white/10 bg-white/[0.04] text-zinc-200 transition hover:bg-white/[0.07]";

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/", label: "Home", icon: Home },
   { href: "/biblioteca", label: "Biblioteca", icon: BookOpen },
-  { href: "/buscar", label: "Buscar", icon: Search },
+  { href: "/buscar?level=basic", label: "Explorar", icon: Search, featured: true },
   { href: "/tags", label: "Tags", icon: Tags },
 ];
 
@@ -62,9 +62,14 @@ export function BottomNav() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex h-14 flex-col items-center justify-center gap-1 rounded border border-transparent text-[11px] text-zinc-300 transition hover:border-cyan-200/20 hover:bg-cyan-200/10 hover:text-white"
+                className={cn(
+                  "flex h-14 flex-col items-center justify-center gap-1 rounded border text-[11px] transition hover:text-white",
+                  link.featured
+                    ? "border-cyan-200/30 bg-cyan-200/12 text-cyan-50 shadow-[0_0_22px_rgba(158,231,255,0.08)] hover:bg-cyan-200/18"
+                    : "border-transparent text-zinc-300 hover:border-cyan-200/20 hover:bg-cyan-200/10",
+                )}
               >
-                <Icon className="h-4 w-4 text-cyan-100/80" aria-hidden />
+                <Icon className={cn("h-4 w-4", link.featured ? "text-cyan-50" : "text-cyan-100/80")} aria-hidden />
                 {link.label}
               </Link>
             );
@@ -75,10 +80,11 @@ export function BottomNav() {
               setOpen(true);
               setError(null);
             }}
-            className="flex h-14 flex-col items-center justify-center gap-1 rounded border border-cyan-200/20 bg-cyan-200/10 text-[11px] text-cyan-50 transition hover:bg-cyan-200/15"
+            className="flex h-14 flex-col items-center justify-center gap-1 rounded border border-transparent text-[10px] text-zinc-500 transition hover:border-cyan-200/20 hover:bg-cyan-200/8 hover:text-cyan-100"
+            aria-label="Admin"
           >
-            <LockKeyhole className="h-4 w-4" aria-hidden />
-            Admin
+            <LockKeyhole className="h-3.5 w-3.5" aria-hidden />
+            Adm
           </button>
         </div>
       </nav>

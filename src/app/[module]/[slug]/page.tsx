@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText, ImageIcon, Link2, Paperclip } from "lucide-react";
+import { ArrowLeft, FileText, ImageIcon, Link2, Paperclip, Tags } from "lucide-react";
 import { ConfidenceBadge, RiskBadge, SecrecyBadge, StatusBadge } from "@/components/badges";
 import { ContentBlockRenderer } from "@/components/content-block-renderer";
 import { ReaderControls } from "@/components/reader-controls";
 import { RecordCard } from "@/components/record-card";
+import { RecordTabs } from "@/components/record-tabs";
 import { fetchRecordBySlug } from "@/lib/data";
 import { getKindFromRoute, labelize, moduleConfigs } from "@/lib/modules";
 import { compactText, formatDate } from "@/lib/utils";
@@ -43,30 +44,31 @@ export default async function RecordPage({ params }: PageProps) {
   const attachments = record.assets.filter((asset) => asset.asset_type === "attachment" && !blockAssetIds.has(asset.id));
   const metadataEntries = Object.entries(record.metadata).filter(([, value]) => value);
   const hasBlocks = record.content_blocks.length > 0;
+  const mediaCount = images.length + attachments.length;
 
   return (
-    <article className="space-y-6">
-      <Link href={`/${module}`} className="inline-flex items-center gap-2 text-sm text-cyan-100/80 hover:text-cyan-50">
+    <article className="space-y-5 sm:space-y-6">
+      <Link href={`/${module}`} className="inline-flex items-center gap-2 text-sm text-cyan-100/80 transition hover:text-cyan-50">
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Voltar para {moduleConfigs[kind].title}
       </Link>
 
-      <section className="overflow-hidden rounded-md border border-white/10 bg-[#0b1620]/90">
+      <section className="reader-chrome overflow-hidden rounded-md border border-white/10 bg-[#0b1620]/90">
         {cover?.public_url && (
           <div
-            className="reader-cover h-64 border-b border-white/10 bg-cover bg-center"
+            className="reader-cover h-44 border-b border-white/10 bg-cover bg-center sm:h-64"
             style={{ backgroundImage: `url(${cover.public_url})` }}
           />
         )}
-        <div className="p-6 sm:p-8">
+        <div className="p-4 sm:p-8">
           <div className="flex flex-wrap gap-2">
             <StatusBadge value={record.status} />
             <RiskBadge value={record.risk} />
             <SecrecyBadge value={record.secrecy} />
             <ConfidenceBadge value={record.confidence} />
           </div>
-          <h1 className="mt-5 max-w-4xl text-3xl font-semibold text-white sm:text-5xl">{record.title}</h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+          <h1 className="mt-4 max-w-4xl text-2xl font-semibold text-white sm:mt-5 sm:text-5xl">{record.title}</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-300 sm:mt-4 sm:text-base sm:leading-8">
             {compactText(record.summary, moduleConfigs[kind].subtitle)}
           </p>
           <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
@@ -87,115 +89,138 @@ export default async function RecordPage({ params }: PageProps) {
         }}
       />
 
-      <section className="reader-layout grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-5">
-          <section className="rounded-md border border-white/10 bg-[#0d1822]/86 p-5">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-white">
-              <FileText className="h-4 w-4 text-cyan-100" aria-hidden />
-              Texto principal
-            </h2>
-            <div className="mt-4">
-              {hasBlocks ? (
-                <ContentBlockRenderer blocks={record.content_blocks} assets={record.assets} />
-              ) : (
-                <p className="reader-content whitespace-pre-wrap text-zinc-300">
-                  {compactText(record.description, "Descricao completa ainda nao publicada.")}
-                </p>
-              )}
+      <RecordTabs
+        counts={{
+          content: hasBlocks || record.description ? 1 : 0,
+          data: metadataEntries.length + record.tags.length,
+          media: mediaCount,
+          relations: record.relations.length,
+        }}
+        content={
+          <TabShell icon={FileText} title="Texto principal">
+            {hasBlocks ? (
+              <ContentBlockRenderer blocks={record.content_blocks} assets={record.assets} />
+            ) : (
+              <p className="reader-content whitespace-pre-wrap text-zinc-300">
+                {compactText(record.description, "Descricao completa ainda nao publicada.")}
+              </p>
+            )}
+          </TabShell>
+        }
+        data={
+          <TabShell icon={Tags} title="Dados tecnicos e marcadores">
+            <dl className="grid gap-3 md:grid-cols-2">
+              <Info label="Modulo" value={moduleConfigs[kind].title} />
+              <Info label="Categoria" value={record.category ?? "Sem categoria"} />
+              <Info label="Atualizado" value={formatDate(record.updated_at)} />
+              <Info label="Publicado" value={formatDate(record.published_at)} />
+              {metadataEntries.map(([key, value]) => (
+                <Info key={key} label={labelize(key)} value={String(value)} multiline />
+              ))}
+            </dl>
+            <div className="mt-4 rounded border border-white/10 bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-zinc-500">Tags</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {record.tags.length > 0 ? (
+                  record.tags.map((tag) => (
+                    <span key={tag} className="rounded border border-cyan-200/25 bg-cyan-200/10 px-2 py-1 text-xs text-cyan-100">
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-zinc-400">Nenhuma tag registrada.</span>
+                )}
+              </div>
             </div>
-          </section>
-
-          {metadataEntries.length > 0 && (
-            <section className="rounded-md border border-white/10 bg-[#0d1822]/86 p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white">Dados tecnicos</h2>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                {metadataEntries.map(([key, value]) => (
-                  <Info key={key} label={labelize(key)} value={String(value)} multiline />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {images.length > 0 && (
-            <section className="rounded-md border border-white/10 bg-[#0d1822]/86 p-5">
-              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-white">
-                <ImageIcon className="h-4 w-4 text-cyan-100" aria-hidden />
-                Imagens
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {images.map((asset) => (
-                  <figure key={asset.id} className="overflow-hidden rounded border border-white/10 bg-black/20">
-                    <div className="relative aspect-[4/3]">
-                      <Image src={asset.public_url as string} alt="" fill className="object-cover" sizes="(min-width: 768px) 420px, 100vw" />
-                    </div>
-                    <figcaption className="border-t border-white/10 px-3 py-2 text-xs text-zinc-400">
-                      {asset.filename}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {attachments.length > 0 && (
-            <section className="rounded-md border border-white/10 bg-[#0d1822]/86 p-5">
-              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-white">
-                <Paperclip className="h-4 w-4 text-cyan-100" aria-hidden />
-                Anexos
-              </h2>
-              <div className="mt-4 grid gap-3">
-                {attachments.map((asset) => (
-                  <div key={asset.id} className="rounded border border-white/10 bg-black/20 p-3">
-                    <p className="text-sm text-zinc-200">{asset.filename}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
-                      {asset.mime_type ?? "arquivo"} - {asset.visibility === "public" ? "publico" : "restrito"}
-                    </p>
-                    {asset.public_url && (
-                      <Link href={asset.public_url} className="mt-3 inline-flex text-sm text-cyan-100 hover:text-cyan-50">
-                        Abrir anexo
-                      </Link>
-                    )}
+          </TabShell>
+        }
+        media={
+          <TabShell icon={ImageIcon} title="Midia e anexos">
+            {mediaCount > 0 ? (
+              <div className="space-y-5">
+                {images.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {images.map((asset) => (
+                      <figure key={asset.id} className="lua-pressable overflow-hidden rounded border border-white/10 bg-black/20">
+                        <div className="relative aspect-[4/3]">
+                          <Image src={asset.public_url as string} alt="" fill className="object-cover" sizes="(min-width: 768px) 420px, 100vw" />
+                        </div>
+                        <figcaption className="border-t border-white/10 px-3 py-2 text-xs text-zinc-400">
+                          {asset.filename}
+                        </figcaption>
+                      </figure>
+                    ))}
                   </div>
+                )}
+                {attachments.length > 0 && (
+                  <div className="grid gap-3">
+                    {attachments.map((asset) => (
+                      <div key={asset.id} className="rounded border border-white/10 bg-black/20 p-3">
+                        <p className="text-sm text-zinc-200">{asset.filename}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
+                          {asset.mime_type ?? "arquivo"} - {asset.visibility === "public" ? "publico" : "restrito"}
+                        </p>
+                        {asset.public_url && (
+                          <Link href={asset.public_url} className="mt-3 inline-flex text-sm text-cyan-100 transition hover:text-cyan-50">
+                            Abrir anexo
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <EmptyTab icon={Paperclip} text="Nenhuma midia ou anexo publicado neste registro." />
+            )}
+          </TabShell>
+        }
+        relations={
+          <TabShell icon={Link2} title="Registros relacionados">
+            {record.relations.length > 0 ? (
+              <div className="grid gap-3">
+                {record.relations.map((relation) => (
+                  <RecordCard key={relation.record.id} record={{ ...relation.record, description: null, category: null, confidence: "media", status: "publicado", is_published: true, is_featured: false, metadata: {}, content_blocks: [], cover_asset_id: null, created_at: "", updated_at: "", published_at: "", tags: [], assets: [], relations: [] }} />
                 ))}
               </div>
-            </section>
-          )}
-        </div>
-
-        <aside className="reader-sidebar space-y-4">
-          <div className="rounded-md border border-white/10 bg-[#0d1822]/86 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white">Tags</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {record.tags.length > 0 ? (
-                record.tags.map((tag) => (
-                  <span key={tag} className="rounded border border-cyan-200/25 bg-cyan-200/10 px-2 py-1 text-xs text-cyan-100">
-                    {tag}
-                  </span>
-                ))
-              ) : (
-                <p className="text-sm text-zinc-400">Nenhuma tag registrada.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-md border border-white/10 bg-[#0d1822]/86 p-5">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-white">
-              <Link2 className="h-4 w-4 text-cyan-100" aria-hidden />
-              Relacionados
-            </h2>
-            <div className="mt-4 space-y-3">
-              {record.relations.length > 0 ? (
-                record.relations.map((relation) => (
-                  <RecordCard key={relation.record.id} record={{ ...relation.record, description: null, category: null, confidence: "media", status: "publicado", is_published: true, is_featured: false, metadata: {}, content_blocks: [], cover_asset_id: null, created_at: "", updated_at: "", published_at: "", tags: [], assets: [], relations: [] }} />
-                ))
-              ) : (
-                <p className="text-sm leading-6 text-zinc-400">Nenhuma relacao publicada.</p>
-              )}
-            </div>
-          </div>
-        </aside>
-      </section>
+            ) : (
+              <EmptyTab icon={Link2} text="Nenhuma relacao publicada." />
+            )}
+          </TabShell>
+        }
+      />
     </article>
+  );
+}
+
+function TabShell({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: typeof FileText;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-md border border-white/10 bg-[#0d1822]/86 p-4 sm:p-5">
+      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-white">
+        <Icon className="h-4 w-4 text-cyan-100" aria-hidden />
+        {title}
+      </h2>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function EmptyTab({ icon: Icon, text }: { icon: typeof FileText; text: string }) {
+  return (
+    <div className="grid min-h-40 place-items-center rounded border border-white/10 bg-black/20 p-5 text-center">
+      <div>
+        <Icon className="mx-auto h-6 w-6 text-cyan-100/55" aria-hidden />
+        <p className="mt-3 text-sm leading-6 text-zinc-400">{text}</p>
+      </div>
+    </div>
   );
 }
 
