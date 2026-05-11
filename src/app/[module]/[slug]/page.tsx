@@ -41,7 +41,7 @@ export default async function RecordPage({ params }: PageProps) {
   );
   const images = record.assets.filter((asset) => asset.asset_type !== "attachment" && asset.public_url && !blockAssetIds.has(asset.id));
   const cover = images.find((asset) => asset.id === record.cover_asset_id) ?? images[0];
-  const attachments = record.assets.filter((asset) => asset.asset_type === "attachment" && !blockAssetIds.has(asset.id));
+  const attachments = record.assets.filter((asset) => asset.asset_type === "attachment" && !isPdfAsset(asset) && !blockAssetIds.has(asset.id));
   const metadataEntries = Object.entries(record.metadata).filter(([, value]) => value);
   const hasBlocks = record.content_blocks.length > 0;
   const mediaCount = images.length + attachments.length;
@@ -135,7 +135,7 @@ export default async function RecordPage({ params }: PageProps) {
           </TabShell>
         }
         media={
-          <TabShell icon={ImageIcon} title="Midia e anexos">
+          <TabShell icon={ImageIcon} title="Midia visual">
             {mediaCount > 0 ? (
               <div className="space-y-5">
                 {images.length > 0 && (
@@ -148,12 +148,9 @@ export default async function RecordPage({ params }: PageProps) {
                             alt={asset.filename}
                             className="object-cover"
                             sizes="(min-width: 768px) 420px, 100vw"
-                            fallbackLabel="Arquivo sem previa"
+                            fallbackLabel="Midia indisponivel"
                           />
                         </div>
-                        <figcaption className="border-t border-white/10 px-3 py-2 text-xs text-zinc-400">
-                          {asset.filename}
-                        </figcaption>
                       </figure>
                     ))}
                   </div>
@@ -162,7 +159,7 @@ export default async function RecordPage({ params }: PageProps) {
                   <div className="grid gap-3">
                     {attachments.map((asset) => (
                       <div key={asset.id} className="rounded border border-white/10 bg-black/20 p-3">
-                        <p className="text-sm text-zinc-200">{asset.filename}</p>
+                        <p className="text-sm text-zinc-200">Anexo publicado</p>
                         <p className="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
                           {asset.mime_type ?? "arquivo"} - {asset.visibility === "public" ? "publico" : "restrito"}
                         </p>
@@ -197,6 +194,10 @@ export default async function RecordPage({ params }: PageProps) {
       />
     </article>
   );
+}
+
+function isPdfAsset(asset: { filename: string; mime_type: string | null }) {
+  return asset.mime_type === "application/pdf" || asset.filename.toLowerCase().endsWith(".pdf");
 }
 
 function TabShell({

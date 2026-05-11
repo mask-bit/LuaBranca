@@ -1,17 +1,17 @@
-import Link from "next/link";
-import { FileText, LockKeyhole } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import type { Asset } from "@/lib/data";
 import type { ContentBlock } from "@/lib/content-blocks";
 import { SafeAssetImage } from "@/components/safe-asset-image";
 
 export function ContentBlockRenderer({ blocks, assets }: { blocks: ContentBlock[]; assets: Asset[] }) {
   const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
+  const visibleBlocks = blocks.filter((block) => block.type !== "attachment");
 
-  if (blocks.length === 0) return null;
+  if (visibleBlocks.length === 0) return null;
 
   return (
     <div className="reader-content space-y-5">
-      {blocks.map((block) => {
+      {visibleBlocks.map((block) => {
         if (block.type === "heading") {
           return (
             <h2 key={block.id} className="text-2xl font-semibold text-white">
@@ -65,8 +65,7 @@ export function ContentBlockRenderer({ blocks, assets }: { blocks: ContentBlock[
           );
         }
 
-        const asset = block.assetIds[0] ? assetMap.get(block.assetIds[0]) : null;
-        return <AttachmentBlock key={block.id} asset={asset} caption={block.caption} />;
+        return null;
       })}
     </div>
   );
@@ -92,37 +91,14 @@ function MediaFigure({ asset, caption }: { asset?: Asset | null; caption?: strin
           alt={caption ?? asset.filename}
           className="object-cover"
           sizes="(min-width: 768px) 640px, 100vw"
-          fallbackLabel="Arquivo sem previa"
+          fallbackLabel="Midia indisponivel"
         />
       </div>
-      {(caption || asset.filename) && (
+      {caption && (
         <figcaption className="border-t border-white/10 px-3 py-2 text-xs text-zinc-400">
-          {caption ?? asset.filename}
+          {caption}
         </figcaption>
       )}
     </figure>
-  );
-}
-
-function AttachmentBlock({ asset, caption }: { asset?: Asset | null; caption?: string }) {
-  return (
-    <div className="rounded border border-white/10 bg-black/20 p-4">
-      <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded border border-cyan-200/25 bg-cyan-200/10">
-          <FileText className="h-5 w-5 text-cyan-100" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-zinc-100">{caption ?? asset?.filename ?? "Anexo"}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
-            {asset?.mime_type ?? "arquivo"} {asset?.visibility === "private" ? "- restrito" : ""}
-          </p>
-          {asset?.public_url && (
-            <Link href={asset.public_url} className="mt-3 inline-flex text-sm text-cyan-100 hover:text-cyan-50">
-              Abrir anexo
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
