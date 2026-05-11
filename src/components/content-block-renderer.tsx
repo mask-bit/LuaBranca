@@ -88,7 +88,7 @@ function MediaFigure({ asset, caption }: { asset?: Asset | null; caption?: strin
       <div className="relative aspect-[16/10]">
         <SafeAssetImage
           src={asset.public_url}
-          alt={caption ?? asset.filename}
+          alt={caption ?? "Midia do registro"}
           className="object-cover"
           sizes="(min-width: 768px) 640px, 100vw"
           fallbackLabel="Midia indisponivel"

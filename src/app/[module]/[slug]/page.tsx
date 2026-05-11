@@ -145,7 +145,7 @@ export default async function RecordPage({ params }: PageProps) {
                         <div className="relative aspect-[4/3]">
                           <SafeAssetImage
                             src={asset.public_url}
-                            alt={asset.filename}
+                            alt="Midia do registro"
                             className="object-cover"
                             sizes="(min-width: 768px) 420px, 100vw"
                             fallbackLabel="Midia indisponivel"
