@@ -6,12 +6,11 @@ import { fetchTags } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Tags",
-  description: "Tags publicadas no arquivo Lua Branca.",
+  description: "Tags cadastradas no arquivo Lua Branca.",
 };
 
 export default async function TagsPage() {
   const tags = await fetchTags(true);
-  const visibleTags = tags.filter((tag) => tag.record_count > 0);
 
   return (
     <div className="space-y-6">
@@ -24,15 +23,15 @@ export default async function TagsPage() {
             <p className="text-xs uppercase tracking-[0.2em] text-cyan-100/60">Indice de filtros</p>
             <h1 className="text-3xl font-semibold text-white">Tags</h1>
             <p className="mt-2 text-sm leading-6 text-zinc-400">
-              Chaves de consulta para cruzar registros publicados.
+              Chaves cadastradas para classificar e cruzar registros.
             </p>
           </div>
         </div>
       </header>
 
-      {visibleTags.length > 0 ? (
+      {tags.length > 0 ? (
         <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {visibleTags.map((tag) => (
+          {tags.map((tag) => (
             <Link
               key={tag.id}
               href={`/buscar?tag=${tag.slug}`}
@@ -43,11 +42,14 @@ export default async function TagsPage() {
                 <span className="font-mono text-sm text-cyan-100">{tag.record_count}</span>
               </div>
               <p className="mt-3 text-xs uppercase tracking-[0.16em] text-zinc-500">{tag.slug}</p>
+              {tag.record_count === 0 && (
+                <p className="mt-3 text-xs leading-5 text-zinc-500">Ainda sem registro publicado vinculado.</p>
+              )}
             </Link>
           ))}
         </section>
       ) : (
-        <EmptyState title="Nenhuma tag publicada" description="As tags aparecem aqui quando registros publicados forem classificados." />
+        <EmptyState title="Nenhuma tag cadastrada" description="As tags aparecem aqui depois de criadas no painel admin." />
       )}
     </div>
   );

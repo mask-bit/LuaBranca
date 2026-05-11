@@ -1,16 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, FileText, ImageIcon, Paperclip } from "lucide-react";
 import { moduleConfigs, getRouteForKind } from "@/lib/modules";
 import type { RecordItem } from "@/lib/data";
 import { ConfidenceBadge, RiskBadge, SecrecyBadge, StatusBadge } from "@/components/badges";
+import { SafeAssetImage } from "@/components/safe-asset-image";
 import { cn, compactText, formatDate } from "@/lib/utils";
 
 export function RecordCard({ record, admin = false }: { record: RecordItem; admin?: boolean }) {
   const route = getRouteForKind(record.kind);
   const href = admin ? `/admin/${route}/${record.id}/editar` : `/${route}/${record.slug}`;
-  const cover = record.assets.find((asset) => asset.id === record.cover_asset_id) ?? record.assets[0];
-  const hasImage = record.assets.some((asset) => asset.asset_type !== "attachment" && asset.public_url);
+  const visualAssets = record.assets.filter((asset) => asset.asset_type !== "attachment" && asset.public_url);
+  const cover = visualAssets.find((asset) => asset.id === record.cover_asset_id) ?? visualAssets[0];
+  const hasImage = visualAssets.length > 0;
   const hasAttachment = record.assets.some((asset) => asset.asset_type === "attachment");
   const hasBlockMedia = record.content_blocks.some((block) => "assetIds" in block && block.assetIds.length > 0);
   const hasMedia = hasImage || hasAttachment || hasBlockMedia;
@@ -20,12 +21,12 @@ export function RecordCard({ record, admin = false }: { record: RecordItem; admi
       <Link href={href} className="grid gap-4 sm:grid-cols-[112px_1fr]">
         <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded border border-white/10 bg-white/[0.04]">
           {cover?.public_url ? (
-            <Image
+            <SafeAssetImage
               src={cover.public_url}
               alt=""
-              fill
               className="object-cover transition duration-300 group-hover:scale-[1.03]"
               sizes="112px"
+              fallbackLabel="Sem previa"
             />
           ) : (
             <>

@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { FileText, LockKeyhole } from "lucide-react";
 import type { Asset } from "@/lib/data";
 import type { ContentBlock } from "@/lib/content-blocks";
+import { SafeAssetImage } from "@/components/safe-asset-image";
 
 export function ContentBlockRenderer({ blocks, assets }: { blocks: ContentBlock[]; assets: Asset[] }) {
   const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
@@ -87,7 +87,13 @@ function MediaFigure({ asset, caption }: { asset?: Asset | null; caption?: strin
   return (
     <figure className="overflow-hidden rounded border border-white/10 bg-black/20">
       <div className="relative aspect-[16/10]">
-        <Image src={asset.public_url} alt={caption ?? asset.filename} fill className="object-cover" sizes="(min-width: 768px) 640px, 100vw" />
+        <SafeAssetImage
+          src={asset.public_url}
+          alt={caption ?? asset.filename}
+          className="object-cover"
+          sizes="(min-width: 768px) 640px, 100vw"
+          fallbackLabel="Arquivo sem previa"
+        />
       </div>
       {(caption || asset.filename) && (
         <figcaption className="border-t border-white/10 px-3 py-2 text-xs text-zinc-400">

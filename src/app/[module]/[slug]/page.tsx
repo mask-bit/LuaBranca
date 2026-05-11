@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileText, ImageIcon, Link2, Paperclip, Tags } from "lucide-react";
@@ -8,6 +7,7 @@ import { ContentBlockRenderer } from "@/components/content-block-renderer";
 import { ReaderControls } from "@/components/reader-controls";
 import { RecordCard } from "@/components/record-card";
 import { RecordTabs } from "@/components/record-tabs";
+import { SafeAssetImage } from "@/components/safe-asset-image";
 import { fetchRecordBySlug } from "@/lib/data";
 import { getKindFromRoute, labelize, moduleConfigs } from "@/lib/modules";
 import { compactText, formatDate } from "@/lib/utils";
@@ -36,11 +36,11 @@ export default async function RecordPage({ params }: PageProps) {
   const record = await fetchRecordBySlug(kind, slug, true);
   if (!record) notFound();
 
-  const cover = record.assets.find((asset) => asset.id === record.cover_asset_id) ?? record.assets[0];
   const blockAssetIds = new Set(
     record.content_blocks.flatMap((block) => ("assetIds" in block ? block.assetIds : [])),
   );
   const images = record.assets.filter((asset) => asset.asset_type !== "attachment" && asset.public_url && !blockAssetIds.has(asset.id));
+  const cover = images.find((asset) => asset.id === record.cover_asset_id) ?? images[0];
   const attachments = record.assets.filter((asset) => asset.asset_type === "attachment" && !blockAssetIds.has(asset.id));
   const metadataEntries = Object.entries(record.metadata).filter(([, value]) => value);
   const hasBlocks = record.content_blocks.length > 0;
@@ -143,7 +143,13 @@ export default async function RecordPage({ params }: PageProps) {
                     {images.map((asset) => (
                       <figure key={asset.id} className="lua-pressable overflow-hidden rounded border border-white/10 bg-black/20">
                         <div className="relative aspect-[4/3]">
-                          <Image src={asset.public_url as string} alt="" fill className="object-cover" sizes="(min-width: 768px) 420px, 100vw" />
+                          <SafeAssetImage
+                            src={asset.public_url}
+                            alt={asset.filename}
+                            className="object-cover"
+                            sizes="(min-width: 768px) 420px, 100vw"
+                            fallbackLabel="Arquivo sem previa"
+                          />
                         </div>
                         <figcaption className="border-t border-white/10 px-3 py-2 text-xs text-zinc-400">
                           {asset.filename}
